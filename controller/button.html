@@ -1,0 +1,15 @@
+<button action='post_blog'>Btn</button> 
+<form name='blog-title'></form>
+
+<script>
+
+    let gtoken = null;
+
+    function login() {
+        gtoken = axois.post({username: "letmein"})
+    }
+    function post_blog() {
+        blog_title = form.value
+        axios.post({title: blog_title, token: gtoken})
+    }
+</script>

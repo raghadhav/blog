@@ -1,68 +1,87 @@
-const blogRouter = require('express').Router()
 const blogModel = require('../models/blogData')
+const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
-// blogRouter.get('/', (request, response) => {
-//     response.send('test again change')
-//     console.log('is it working?')
-// })
+const blogRouter = require('express').Router()
+const { request } = require('express');
 
-// blogRouter.get('/api/blogs', (request, response) => {
-//     blogModel
-//         .find({})
-//         .then(blogs => {
-//             response.json(blogs)
-//         })
-// })
+
 blogRouter.get('/', async (request, response) => {
-    //let blogs = await blogModel.find({});
-    let blogsPromise = blogModel.find({});
-    let blogs = await blogsPromise;
-    response.json(blogs)
-
+  //let blogs = await blogModel.find({});
+  // /console.log(`the token`, request.token)
+  let blogsPromise = blogModel.find({})
+    .populate('user')
+  let blogs = await blogsPromise;
+  response.json(blogs)
 })
 
 blogRouter.post('/', async (request, response, next) => {
-    const body = request.body
-    const blog = new blogModel({
-        title: body.title,
-        author: body.author
-    })
-    try {
-        const savedBlog = await blog.save()
-        response.json(savedBlog.toJSON())
-    } catch (exception) {
-        next(exception)
-    }
+  const body = request.body
+
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  console.log(`the decoded token: `, decodedToken);
+  if (!request.token || !decodedToken.id) {
+    return response.status(401).json({ error: 'token missing or invalid' })
+  }
+  const user = request.user
+  console.log(`the user at the post is : `, user)
+  const blog = new blogModel({
+    title: body.title,
+    author: body.author,
+    user: user._id
+  })
+  try {
+    const savedBlog = await blog.save();
+    user.blogs = user.blogs.concat(savedBlog._id);
+    await user.save();
+
+    response.json(savedBlog.toJSON());
+  } catch (exception) {
+    next(exception)
+  }
 })
+
 blogRouter.delete('/:id', async (request, response, next) => {
- 
-      await blogModel.findByIdAndRemove(request.params.id)
-      response.status(204).end()
+  // get the user of this blog
+  const blog = await blogModel.findById(request.params.id)
+  // compare if its valid token with the request
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  if (!request.token || !decodedToken.id) {
+    return response.status(401).json({ error: 'token missing or invalid' })
+  }
+  const tokenUser = request.user._id
+  console.log(`token user `, tokenUser);
+  //console.log(`bllog user `, blog.user);
+  if (tokenUser.toString() === blog.user.toString()) {
+    await blogModel.findByIdAndRemove(request.params.id)
+    return response.status(204).end()
+  }
+  else {
+    return response.status(401).json({ error: 'User does not match the blog user' })
+  }
+})
 
-  })
-  blogRouter.get('/:id', async (request, response, next) => {
-    
-      const blog = await blogModel.findById(request.params.id)
-      if (blog) {
-        response.json(blog)
-      } else {
-        response.status(404).end()
-      }
-    
-  })
+blogRouter.get('/:id', async (request, response, next) => {
+  const blog = await blogModel.findById(request.params.id)
+  if (blog) {
+    response.json(blog)
+  } else {
+    response.status(404).end()
+  }
+})
 
-  blogRouter.put('/:id', (request, response, next) => {
-    const body = request.body
-  
-    const blog = {
-      author: body.author,
-      title: body.title,
-    }
-  
-    blogModel.findByIdAndUpdate(request.params.id, blog, { new: true })
-      .then(updatedBlog => {
-        response.json(updatedBlog.toJSON())
-      })
-      .catch(error => next(error))
-  })
+blogRouter.put('/:id', (request, response, next) => {
+  const body = request.body
+
+  const blog = {
+    author: body.author,
+    title: body.title,
+  }
+
+  blogModel.findByIdAndUpdate(request.params.id, blog, { new: true })
+    .then(updatedBlog => {
+      response.json(updatedBlog.toJSON())
+    })
+    .catch(error => next(error))
+})
 module.exports = blogRouter;

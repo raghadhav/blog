@@ -17,6 +17,10 @@ const blogSchema = new mongoose.Schema({
   author: String,
   url: String,
   likes: Number,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 })
 
 // these next steps is for removing the ._v id from printing to the frontend
@@ -28,4 +32,4 @@ blogSchema.set('toJSON', {
   }
 })
 
-module.exports = mongoose.model('blog', blogSchema)
+module.exports = mongoose.model('Blog', blogSchema)
