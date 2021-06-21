@@ -28,14 +28,20 @@ blogRouter.post('/', async (request, response, next) => {
   const blog = new blogModel({
     title: body.title,
     author: body.author,
-    user: user._id
+    url: body.url,
+    user: user._id,
+    likes: body.likes
   })
   try {
-    const savedBlog = await blog.save();
-    user.blogs = user.blogs.concat(savedBlog._id);
-    await user.save();
-
-    response.json(savedBlog.toJSON());
+    const savedBlog = blog.save().then(blog => {
+      user.blogs = user.blogs.concat(savedBlog._id);
+      user.save().then(() => {
+        blog.populate('user').execPopulate().then((popBlog) => {
+          console.log('po blog', popBlog);
+          response.json(popBlog.toJSON());
+        });
+      })
+    });
   } catch (exception) {
     next(exception)
   }
@@ -76,9 +82,12 @@ blogRouter.put('/:id', (request, response, next) => {
   const blog = {
     author: body.author,
     title: body.title,
+    url: body.url,
+    likes: body.likes
   }
 
   blogModel.findByIdAndUpdate(request.params.id, blog, { new: true })
+    .populate('user')
     .then(updatedBlog => {
       response.json(updatedBlog.toJSON())
     })
