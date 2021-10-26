@@ -6,7 +6,7 @@ const Blogs = require('../models/blogData')
 
 const usersRouter = require('express').Router()
 
-
+// regsiter user
 usersRouter.post('/', async (request, response) => {
   const body = request.body
 
@@ -23,6 +23,7 @@ usersRouter.post('/', async (request, response) => {
   response.json(savedUser)
 })
 
+// login user
 usersRouter.get('/', async (request, response) => {
   const users = await User.find({})
   .populate('blogs',{title: 1})

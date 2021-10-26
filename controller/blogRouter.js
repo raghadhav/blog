@@ -33,11 +33,14 @@ blogRouter.post('/', async (request, response, next) => {
     likes: body.likes
   })
   try {
-    const savedBlog = blog.save().then(blog => {
+    blog.save().then(savedBlog => {
+      console.log('adding to user blogs', savedBlog._id);
+      // concat new blog id to user
       user.blogs = user.blogs.concat(savedBlog._id);
+      // update user with new blog id array
       user.save().then(() => {
+        // populate response with users
         blog.populate('user').execPopulate().then((popBlog) => {
-          console.log('po blog', popBlog);
           response.json(popBlog.toJSON());
         });
       })
@@ -59,8 +62,11 @@ blogRouter.delete('/:id', async (request, response, next) => {
   console.log(`token user `, tokenUser);
   //console.log(`bllog user `, blog.user);
   if (tokenUser.toString() === blog.user.toString()) {
-    await blogModel.findByIdAndRemove(request.params.id)
-    return response.status(204).end()
+    blogModel.findByIdAndRemove(request.params.id)
+      .then(delBlog => {
+        response.json(delBlog.toJSON())
+      })
+    //return response.status(204).end()
   }
   else {
     return response.status(401).json({ error: 'User does not match the blog user' })
