@@ -20,7 +20,8 @@ const blogSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }
+  },
+  comments : [String]
 })
 
 // these next steps is for removing the ._v id from printing to the frontend

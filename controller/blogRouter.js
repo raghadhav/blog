@@ -30,7 +30,8 @@ blogRouter.post('/', async (request, response, next) => {
     author: body.author,
     url: body.url,
     user: user._id,
-    likes: body.likes
+    likes: body.likes,
+    comments: body.comments
   })
   try {
     blog.save().then(savedBlog => {
@@ -89,7 +90,8 @@ blogRouter.put('/:id', (request, response, next) => {
     author: body.author,
     title: body.title,
     url: body.url,
-    likes: body.likes
+    likes: body.likes,
+    comments: body.comments
   }
 
   blogModel.findByIdAndUpdate(request.params.id, blog, { new: true })

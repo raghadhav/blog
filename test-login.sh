@@ -12,4 +12,4 @@ set -eu
 
 # curl -H "Authorization: Bearer ${TOKEN}" --request DELETE http://localhost:3015/api/blogs/608401dae7ad943bd281d844
 
-curl -s -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' --data '{"username":"{raghad}","password":"{123}"}' https://{localhost:3042}/api/users 
+curl -s -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' --data '{"username":"{raghad}","password":"{123}"}' https://{localhost:3042}/api/blogs 
